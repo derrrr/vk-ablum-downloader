@@ -24,7 +24,6 @@ def _get_session():
                       "(khtml, like gecko) "
                       "chrome/46.0.2490.86 safari/537.36"}
     session.headers.update(headers)
-    # session.keep_alive = False
     return session
 
 
