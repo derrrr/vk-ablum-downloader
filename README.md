@@ -1,7 +1,7 @@
 vk-photo-downloader
 ===
 
-a slow python script for downloading photos from VK.com
+a slow python script for downloading photos from vk.com
 
 ### Usage
 1) Get the photo links ,and save in text.
