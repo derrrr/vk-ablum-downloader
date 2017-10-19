@@ -1,7 +1,9 @@
 import re
 import os
 import time
+import json
 import requests
+import collections
 
 
 def timeit(method):
@@ -26,7 +28,7 @@ def _get_session():
 
 
 def get_link_list():
-    # read text line by line
+    # Read text line by line
     with open(link_text) as f:
         content = f.readlines()
         return [x.strip() for x in content]
@@ -46,15 +48,28 @@ def process():
     for link in link_list:
         res = rs.get(link).text.replace("\\/", "/").replace("\\\"", "\"")
 
-        # get photo url with regex
-        img_src = re.findall("z_src\":\"([\w:/\-\.]+\.([\w]+))\"", res)[4]
+        # Set photo_id from photo url
+        photo_id = link.split("photo")[1]
 
-        # set name from photo url
-        name = link.split("photo-")[1]
-        img_url, filetype = img_src
-        output_img = "{}/photo-{}.{}".format(output_folder, name, filetype)
+        # Set regex pattern for photo info
+        pat_id = "".join(["({\"id\":\"", photo_id, ".+]},{\"id\":)"])
+        pat_non_id = "".join([",{\"id\":\"(?!", photo_id, ")"])
 
-        # save image
+        # Process photo info to json format
+        part_id = re.search(pat_id, res)[0]
+        part_id_select = re.split(pat_non_id, part_id)[0]
+        part_js = re.sub("\"comments.+>\",", "", part_id_select)
+
+        # Get the higher resolution url from json
+        dic_js = json.loads(part_js)
+        od = collections.OrderedDict(sorted(dic_js.items()))
+        js = [[key, value] for key, value in od.items()]
+        img_url = js[-1][1]
+
+        filetype = re.search(".+\.(\w+)", img_url)[1]
+        output_img = "{}/photo{}.{}".format(output_folder, photo_id, filetype)
+
+        # Save image
         if not os.path.exists(output_img):
             with open(output_img, "wb") as handle:
                 response = rs.get(img_url, stream=True)
@@ -65,14 +80,14 @@ def process():
                         break
                     handle.write(block)
             save += 1
-            print("saved as {}. {}/{} done.".format(name, save + skip, total_link))
+            print("saved as {}. {}/{} done.".format(photo_id[1:], save + skip, total_link))
         else:
             skip += 1
-            print("{} exists and skipped. {}/{} done.".format(name, save + skip, total_link))
+            print("{} exists and skipped. {}/{} done.".format(photo_id[1:], save + skip, total_link))
     return total_link, save, skip
 
 
-# set path
+# Set path
 link_text = "R:/link.txt"
 output_folder = "R:/vk"
 
