@@ -1,20 +1,22 @@
-vk-photo-downloader
+vk-album-downloader
 ===
 
-1) A slow python script for downloading photos from vk.com
+A python script for downloading photos from vk.com
 
-2) Higher image resolution priority
+### Features
+- Higher image resolution priority when downloading
+- Without login
+- Multiprocessing
+
+### Requirements
+- Python 3
+- [PhantomJS](https://github.com/ariya/phantomjs) >= 2.5
+  - https://bitbucket.org/ariya/phantomjs/downloads/
 
 ### Usage
-1) Get the photo links, and save in text.
-  - e.g. https://vk.com/photo-XXXXXXXX_YYYYYYYYY
-
-2) Set the link text and output path.
-
-3) Run, wait, and done.
+1) Set PhantomJS path, destination path, and album url.
+  - e.g. https://vk.com/album-XXXXXXXX_YYYYYYYYY
+2) Run, wait, and done.
 
 ### To do
-1) Deal with auto scrolling in vk album page, and get all photo links.
-  - e.g. https://vk.com/album-XXXXXXXX_YYYYYYYYY
-
-2) Multi-processing.
+1) Get album url and destination from system arguments.
