@@ -147,8 +147,8 @@ class vk_photo_download:
         This function helps solve that problem.
         """
         tmp_path ="{}tmp/tmp".format(os.path.dirname(dest))
-        move("R:/vk", tmp_path)
-        move(tmp_path, "R:/vk/")
+        move(dest, tmp_path)
+        move(tmp_path, dest)
         rmtree(os.path.dirname(tmp_path))
 
 
