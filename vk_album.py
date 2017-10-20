@@ -16,8 +16,8 @@ from bs4 import BeautifulSoup as BS
 def _get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("album_url", help="a vk album url", type=str)
-    parser.add_argument("-o", "--output", help="output destination", dest="dest", type=str)
-    parser.add_argument("-P", "--PhantomJS", help="PhantomJS path", dest="PhantomJS_path", required=True, type=str)
+    parser.add_argument("-o", help="output destination", dest="dest", type=str)
+    parser.add_argument("-P", help="PhantomJS path", dest="PhantomJS_path", required=True, type=str)
     args = parser.parse_args()
 
     album_url = args.album_url
