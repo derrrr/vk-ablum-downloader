@@ -5,16 +5,42 @@ import time
 import json
 import random
 import requests
+import argparse
 from shutil import move, rmtree
 from selenium import webdriver
 from collections import OrderedDict
 from multiprocessing import Pool
 from bs4 import BeautifulSoup as BS
 
-# Set path
-dest = ""
-album_url = ""
-PhantomJS_path = ""
+
+def _get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("album_url", help="a vk album url", type=str)
+    parser.add_argument("-o", "--output", help="output destination", dest="dest", type=str)
+    parser.add_argument("-P", "--PhantomJS", help="PhantomJS path", dest="PhantomJS_path", required=True, type=str)
+    args = parser.parse_args()
+
+    album_url = args.album_url
+    match = re.match("https?://(www\.)?(m\.)?vk\.com/(album-\d+_\d+)", album_url)
+    album_url = "http://vk.com/{}".format(match[3])
+
+    PhantomJS_path = args.PhantomJS_path
+    PhantomJS_path = PhantomJS_path.replace("\\", "/")
+
+    if args.dest:
+        dest = args.dest
+        dest = dest.replace("\\", "/")
+        # For root dir
+        if dest == os.path.dirname(dest):
+            dest = "{}/{}".format(dest, match[3]).replace("//", "/")
+        # Not root dir
+        else:
+            dest = re.sub("/$", "", dest)
+    else:
+        dest = match[3]
+    print("\n------\nAlbum_url: {}".format(album_url))
+    print("Destination: {}\n------\n".format(dest))
+    return album_url, dest, PhantomJS_path
 
 
 def _get_session():
@@ -29,8 +55,9 @@ def _get_session():
 
 
 class album_process:
-    def __init__(self):
+    def __init__(self, album_url, PhantomJS_path):
         self.driver = webdriver.PhantomJS(PhantomJS_path)
+        self.album_url = album_url
 
     def console_status(self):
         try:
@@ -50,7 +77,7 @@ class album_process:
             sys.exit("==Please restart this script.==")
 
     def get_full_page(self):
-        self.driver.get(album_url)
+        self.driver.get(self.album_url)
         print("Launch selenium...")
 
         full_res = self.driver.page_source
@@ -88,15 +115,13 @@ class album_process:
 
 
 class vk_photo_download:
-    def __init__(self):
+    def __init__(self, dest):
         self.rs = _get_session()
+        self.dest = dest
 
     def get_photo_url(self):
         link = "http://vk.com/photo{}".format(self.photo_id)
         res = self.rs.get(link).text.replace("\\/", "/").replace("\\\"", "\"")
-
-        # Set photo_id from photo url
-        # self.photo_id = link.split("photo")[1]
 
         # Set regex pattern for photo info
         pat_id = "".join(["({\"id\":\"", self.photo_id, ".+]},{\"id\":)"])
@@ -121,7 +146,7 @@ class vk_photo_download:
 
         # Set saving path anf filetype
         filetype = re.search(".+\.(\w+)", img_url)[1]
-        img_path = "{}/photo{}.{}".format(dest, self.photo_id, filetype)
+        img_path = "{}/photo{}.{}".format(self.dest, self.photo_id, filetype)
 
         # Save photo
         if not os.path.exists(img_path):
@@ -146,35 +171,36 @@ class vk_photo_download:
         I'm not sure why it happened.
         This function helps solve that problem.
         """
-        tmp_path ="{}tmp/tmp".format(os.path.dirname(dest))
-        move(dest, tmp_path)
-        move(tmp_path, dest)
+        tmp_path = "{}/tmp/tmp".format(os.path.dirname(self.dest).replace("//", "/"))
+        move(self.dest, tmp_path)
+        move(tmp_path, self.dest)
         rmtree(os.path.dirname(tmp_path))
 
 
 def main():
-    # Exit if destination is not a folder
-    if dest == os.path.dirname(dest):
-        print("Destination is not a folder.")
-        sys.exit(0)
+    args = _get_args()
+    dest = args[1]
 
-    album = album_process()
-    vk_photo = vk_photo_download()
+    album = album_process(args[0], args[2])
+    vk_photo = vk_photo_download(dest)
 
     photo_ids = album.get_photo_id()
-    print("Find {} photos in album.".format(len(photo_ids)))
+    total_photo = len(photo_ids)
+    print("Find {} photos in album.".format(total_photo))
 
-    # Make destination folder if not exists
-    if not os.path.exists(dest):
-        os.makedirs(dest, mode=0o777)
+    if total_photo > 0:
+        # Make destination folder if not exists
+        if not os.path.exists(dest):
+            os.makedirs(dest, mode=0o777)
 
-    with Pool() as pool:
-        pool.map(vk_photo.save_photo, photo_ids)
+        with Pool() as pool:
+            pool.map(vk_photo.save_photo, photo_ids)
 
-    vk_photo.reset_thumb()
+        vk_photo.reset_thumb()
+
 
 if __name__ == '__main__':
     ts = time.time()
     main()
     te = time.time()
-    print("{:2.2f} sec spend.".format(te - ts))
+    print("{:2.2f} sec spent.".format(te - ts))
