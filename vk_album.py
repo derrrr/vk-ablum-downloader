@@ -62,11 +62,11 @@ class album_process:
     def console_status(self):
         try:
             load_more_status = self.driver.find_element_by_id("ui_photos_load_more").get_attribute("style")
-            return load_more_status
         except Exception as e:
             print("\t{} occured. Retry later.".format(type(e).__name__))
             time.sleep(2)
-            self.console_status()
+            load_more_status = self.console_status()
+        return load_more_status
 
     def console_click(self):
         try:
