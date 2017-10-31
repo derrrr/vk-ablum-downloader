@@ -11,6 +11,8 @@ from selenium import webdriver
 from collections import OrderedDict
 from multiprocessing import Pool
 from bs4 import BeautifulSoup as BS
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 
 def _get_args():
@@ -43,14 +45,24 @@ def _get_args():
     return album_url, dest, PhantomJS_path
 
 
-def _get_session():
+def _requests_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
     session = requests.session()
     headers = {
         "user-agent": "mozilla/5.0 (x11; linux x86_64) applewebkit/537.36"
-                      "(khtml, like gecko)"
+                      "(khtml, like gecko) "
                       "chrome/46.0.2490.86 safari/537.36"
     }
     session.headers.update(headers)
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
     return session
 
 
@@ -59,6 +71,7 @@ class album_process:
         self.driver = webdriver.PhantomJS(PhantomJS_path)
         self.album_url = album_url
 
+    # Bad repeat solution
     def console_status(self):
         try:
             load_more_status = self.driver.find_element_by_id("ui_photos_load_more").get_attribute("style")
@@ -116,7 +129,7 @@ class album_process:
 
 class vk_photo_download:
     def __init__(self, dest):
-        self.rs = _get_session()
+        self.rs = _requests_retry_session()
         self.dest = dest
 
     def get_photo_url(self):
