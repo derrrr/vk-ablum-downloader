@@ -175,7 +175,7 @@ class vk_photo_download:
             print("{} saved.".format(self.photo_id[1:]))
         else:
             # skip += 1
-            print("{=={} exists and skipped.==".format(self.photo_id[1:]))
+            print("== {} exists and skipped. ==".format(self.photo_id[1:]))
         time.sleep(random.uniform(0, 1.3))
 
     def reset_thumb(self):
