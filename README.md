@@ -10,7 +10,7 @@ A python script for downloading photos from vk.com
 
 ### Requirements
 - Python 3
-- [PhantomJS](https://github.com/ariya/phantomjs) >= 2.5
+- [PhantomJS](https://github.com/ariya/phantomjs) = 2.5.0-beta
   - https://bitbucket.org/ariya/phantomjs/downloads/
 
 ### Command line usage
@@ -27,3 +27,6 @@ Without output folder, download this album in the current directory called "albu
 ```
 $ python3 vk_album.py http://vk.com/album-XXXXXXXX_YYYYYYYYY -P <PhantomJS path> -o /home/album
 ```
+
+### Issues
+- In multiprocessing, it would return error message if photo existed in destination, but it can still download the whole album.
