@@ -119,7 +119,7 @@ class album_process:
         # Find all elements including photo
         full_res = self.get_full_page()
         full_res = re.sub("(?<=\w) \"", "\"", full_res)
-        soup = BS(full_res, "lxml")
+        soup = BS(full_res, features="html.parser")
         label_photo = soup.find_all(name="div", attrs={"aria-label": "Photo"})
 
         # Get photo ids
