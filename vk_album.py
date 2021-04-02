@@ -187,10 +187,12 @@ class vk_photo_download:
         I'm not sure why it happened.
         This function helps solve that problem.
         """
-        tmp_path = "{}/tmp/tmp".format(os.path.dirname(self.dest).replace("//", "/"))
-        move(self.dest, tmp_path)
-        move(tmp_path, self.dest)
-        rmtree(os.path.dirname(tmp_path))
+        dest = os.path.dirname(self.dest).replace("//", "/")
+        if dest:
+            tmp_path = "{}/tmp/tmp".format(os.path.dirname(self.dest).replace("//", "/"))
+            move(self.dest, tmp_path)
+            move(tmp_path, self.dest)
+            rmtree(os.path.dirname(tmp_path))
 
 
 def main():
