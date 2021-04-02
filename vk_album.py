@@ -74,8 +74,9 @@ class album_process:
     # Bad repeat solution
     def console_status(self):
         try:
-            load_more_status = self.driver.find_element_by_id("ui_photos_load_more").get_attribute("style")
+            load_more_status = self.driver.find_element_by_xpath("//div[@data-type='photos']").get_attribute("style")
         except Exception as e:
+            print(e)
             print("\t{} occured. Retry later.".format(type(e).__name__))
             time.sleep(2)
             load_more_status = self.console_status()
@@ -83,8 +84,10 @@ class album_process:
 
     def console_click(self):
         try:
-            self.driver.find_element_by_id("ui_photos_load_more").click()
+            element = self.driver.find_element_by_xpath("//div[@data-type='photos']")
+            self.driver.execute_script("arguments[0].click();", element)
         except Exception as e:
+            print(e)
             print("{} occured. Now quit.".format(type(e).__name__))
             self.driver.quit()
             sys.exit("==Please restart this script.==")
