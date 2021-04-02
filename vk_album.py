@@ -217,7 +217,11 @@ def main():
             except Exception as e:
                 print(e)
 
-        vk_photo.reset_thumb()
+        try:
+            vk_photo.reset_thumb()
+            vk_photo.reset_thumb()
+        except Exception as e:
+            print(e)
 
 
 if __name__ == '__main__':
