@@ -183,7 +183,7 @@ class vk_photo_download:
 
     def reset_thumb(self):
         """
-        On Windows OS, Some thumnails will corrupt but full image intact.
+        On Windows OS, Some thumbnails will corrupt but full image intact.
         I'm not sure why it happened.
         This function helps solve that problem.
         """
