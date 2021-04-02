@@ -10,23 +10,24 @@ A python script for downloading photos from vk.com
 
 ### Requirements
 - Python 3
-- [PhantomJS](https://github.com/ariya/phantomjs) = 2.5.0-beta
-  - https://bitbucket.org/ariya/phantomjs/downloads/
+- [ChromeDriver](https://chromedriver.chromium.org/) = Download the driver matching your Chrome browser
+  - https://chromedriver.chromium.org/downloads
+  - Once downloaded, make it executable (chmod +x in *NIX based OS) and export its path (or move to a location that is already in exported PATH locations)
 
 ### Command line usage
 ```
-$ python3 vk_album.py <album URL> -P <PhantomJS path> -o [folder to save to] 
+$ python3 vk_album.py <album URL> -o [folder to save to] 
 ```
-Album URL and PhantomJS path are required, output folder is optional.
+Output folder is optional.
 ```
-$ python3 vk_album.py <album URL> -P <PhantomJS path>
+$ python3 vk_album.py <album URL>
 ```
 Without output folder, download this album in the current directory called "album-XXXXXXXX_YYYYYYYYY".
 
 **Example:**
 ```
-$ python3 vk_album.py http://vk.com/album-XXXXXXXX_YYYYYYYYY -P <PhantomJS path> -o /home/album
+$ python3 vk_album.py http://vk.com/album-XXXXXXXX_YYYYYYYYY -o /home/album
 ```
 
 ### Issues
-- In multiprocessing, it would return error message if photo existed in destination, but it can still download the whole album.
+- In multiprocessing, it would return error message if photo existed in the destination, but it can still download the whole album.
