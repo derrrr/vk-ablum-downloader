@@ -211,8 +211,11 @@ def main():
         if not os.path.exists(dest):
             os.makedirs(dest, mode=0o777)
 
-        with Pool() as pool:
-            pool.map(vk_photo.save_photo, photo_ids)
+        with Pool(int(os.cpu_count() / 2)) as pool:
+            try:
+                pool.map(vk_photo.save_photo, photo_ids)
+            except Exception as e:
+                print(e)
 
         vk_photo.reset_thumb()
 
