@@ -19,15 +19,11 @@ def _get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("album_url", help="a vk album url", type=str)
     parser.add_argument("-o", help="output destination", dest="dest", type=str)
-    parser.add_argument("-P", help="PhantomJS path", dest="PhantomJS_path", required=True, type=str)
     args = parser.parse_args()
 
     album_url = args.album_url
     match = re.match("https?://(www\.)?(m\.)?vk\.com/(album-\d+_\d+)", album_url)
     album_url = "http://vk.com/{}".format(match[3])
-
-    PhantomJS_path = args.PhantomJS_path
-    PhantomJS_path = PhantomJS_path.replace("\\", "/")
 
     if args.dest:
         dest = args.dest
@@ -42,7 +38,7 @@ def _get_args():
         dest = match[3]
     print("\n------\nAlbum_url: {}".format(album_url))
     print("Destination: {}\n------\n".format(dest))
-    return album_url, dest, PhantomJS_path
+    return album_url, dest
 
 
 def _requests_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
@@ -194,7 +190,7 @@ def main():
     args = _get_args()
     dest = args[1]
 
-    album = album_process(args[0], args[2])
+    album = album_process(args[0])
     vk_photo = vk_photo_download(dest)
 
     photo_ids = album.get_photo_id()
