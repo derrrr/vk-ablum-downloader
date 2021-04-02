@@ -63,8 +63,12 @@ def _requests_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500
 
 
 class album_process:
-    def __init__(self, album_url, PhantomJS_path):
-        self.driver = webdriver.PhantomJS(PhantomJS_path)
+    def __init__(self, album_url):
+        # prepare the option for the chrome driver
+        options = webdriver.ChromeOptions()
+        options.add_argument('headless')
+
+        self.driver = webdriver.Chrome(options=options)
         self.album_url = album_url
 
     # Bad repeat solution
