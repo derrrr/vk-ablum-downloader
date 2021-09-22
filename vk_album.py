@@ -19,15 +19,11 @@ def _get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("album_url", help="a vk album url", type=str)
     parser.add_argument("-o", help="output destination", dest="dest", type=str)
-    parser.add_argument("-P", help="PhantomJS path", dest="PhantomJS_path", required=True, type=str)
     args = parser.parse_args()
 
     album_url = args.album_url
     match = re.match("https?://(www\.)?(m\.)?vk\.com/(album-\d+_\d+)", album_url)
     album_url = "http://vk.com/{}".format(match[3])
-
-    PhantomJS_path = args.PhantomJS_path
-    PhantomJS_path = PhantomJS_path.replace("\\", "/")
 
     if args.dest:
         dest = args.dest
@@ -42,7 +38,7 @@ def _get_args():
         dest = match[3]
     print("\n------\nAlbum_url: {}".format(album_url))
     print("Destination: {}\n------\n".format(dest))
-    return album_url, dest, PhantomJS_path
+    return album_url, dest
 
 
 def _requests_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
@@ -67,15 +63,20 @@ def _requests_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500
 
 
 class album_process:
-    def __init__(self, album_url, PhantomJS_path):
-        self.driver = webdriver.PhantomJS(PhantomJS_path)
+    def __init__(self, album_url):
+        # prepare the option for the chrome driver
+        options = webdriver.ChromeOptions()
+        options.add_argument('headless')
+
+        self.driver = webdriver.Chrome(options=options)
         self.album_url = album_url
 
     # Bad repeat solution
     def console_status(self):
         try:
-            load_more_status = self.driver.find_element_by_id("ui_photos_load_more").get_attribute("style")
+            load_more_status = self.driver.find_element_by_xpath("//div[@data-type='photos']").get_attribute("style")
         except Exception as e:
+            print(e)
             print("\t{} occured. Retry later.".format(type(e).__name__))
             time.sleep(2)
             load_more_status = self.console_status()
@@ -83,8 +84,10 @@ class album_process:
 
     def console_click(self):
         try:
-            self.driver.find_element_by_id("ui_photos_load_more").click()
+            element = self.driver.find_element_by_xpath("//div[@data-type='photos']")
+            self.driver.execute_script("arguments[0].click();", element)
         except Exception as e:
+            print(e)
             print("{} occured. Now quit.".format(type(e).__name__))
             self.driver.quit()
             sys.exit("==Please restart this script.==")
@@ -116,7 +119,7 @@ class album_process:
         # Find all elements including photo
         full_res = self.get_full_page()
         full_res = re.sub("(?<=\w) \"", "\"", full_res)
-        soup = BS(full_res, "lxml")
+        soup = BS(full_res, features="html.parser")
         label_photo = soup.find_all(name="div", attrs={"aria-label": "Photo"})
 
         # Get photo ids
@@ -180,21 +183,23 @@ class vk_photo_download:
 
     def reset_thumb(self):
         """
-        On Windows OS, Some thumnails will corrupt but full image intact.
+        On Windows OS, Some thumbnails will corrupt but full image intact.
         I'm not sure why it happened.
         This function helps solve that problem.
         """
-        tmp_path = "{}/tmp/tmp".format(os.path.dirname(self.dest).replace("//", "/"))
-        move(self.dest, tmp_path)
-        move(tmp_path, self.dest)
-        rmtree(os.path.dirname(tmp_path))
+        dest = os.path.dirname(self.dest).replace("//", "/")
+        if dest:
+            tmp_path = "{}/tmp/tmp".format(os.path.dirname(self.dest).replace("//", "/"))
+            move(self.dest, tmp_path)
+            move(tmp_path, self.dest)
+            rmtree(os.path.dirname(tmp_path))
 
 
 def main():
     args = _get_args()
     dest = args[1]
 
-    album = album_process(args[0], args[2])
+    album = album_process(args[0])
     vk_photo = vk_photo_download(dest)
 
     photo_ids = album.get_photo_id()
@@ -206,10 +211,17 @@ def main():
         if not os.path.exists(dest):
             os.makedirs(dest, mode=0o777)
 
-        with Pool() as pool:
-            pool.map(vk_photo.save_photo, photo_ids)
+        with Pool(int(os.cpu_count() / 2)) as pool:
+            try:
+                pool.map(vk_photo.save_photo, photo_ids)
+            except Exception as e:
+                print(e)
 
-        vk_photo.reset_thumb()
+        try:
+            vk_photo.reset_thumb()
+            vk_photo.reset_thumb()
+        except Exception as e:
+            print(e)
 
 
 if __name__ == '__main__':
