@@ -3,7 +3,7 @@
 
 A python script for downloading photos from vk.com
 
-### This script is no longer effctive since vk.com updated and PhantomJS is outedated.
+### This script is no longer effective since vk.com updated and PhantomJS is outedated.
 
 ### Features
 - Higher image resolution priority to download
